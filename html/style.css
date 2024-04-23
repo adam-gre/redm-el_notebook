@@ -1,0 +1,114 @@
+
+@font-face {
+    font-family: 'RetroSignature';
+    src: url('https://cfx-nui-el_notebook/html/fonts/RetroSignature.otf')  format('opentype');
+    /* src: url('fonts/RetroSignature.otf')  format('opentype');  */
+}
+
+
+body {
+    background-color: transparent;
+    min-height: 100vh;
+    min-width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+    display: none;
+}
+
+textarea::-webkit-scrollbar {
+    border-radius: 25px;
+    width: 5px;
+  }
+   
+  textarea::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+   
+  textarea::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 25px
+  }
+
+input {
+    font-family: 'RetroSignature', Georgia, 'Times New Roman', Times, serif;
+    background: transparent;
+    font-size: 100px;
+    width: 90%;
+    max-width: 90%;
+}
+
+input[type="submit"]:hover {
+    background: rgba(255, 255, 255, .2);
+    cursor: pointer;
+}
+
+input[type="submit"] {
+    font-family: Verdana,sans-serif;
+    font-size: 15px;
+    font-weight: 200;
+    height: 50px;
+}
+
+textarea:not(:read-only),input:not(:read-only) {
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+textarea:read-only,input:read-only {
+    border: none;
+    color: black;
+}
+
+textarea {
+    background: transparent;
+    font-family: 'RetroSignature', Georgia, 'Times New Roman', Times, serif;
+    width: 90%;
+    max-width: 90%;
+    height: 100%;
+    overflow-y: scroll;
+    font-size: 50px;
+    font-weight: 400;
+    resize: none;
+}
+ 
+h1 {
+    font-weight: 400;
+    /* font-size: 30px; */
+    font-size: 80px;
+}
+
+p {
+    font-weight: 400;
+    font-size: 40px;
+    /* font-size: 20px; */
+}
+
+#notebook {
+    width: 450px;    
+    height: calc(590px/3*4);
+    max-height: 90vh;
+    max-width: 750px;
+    min-width: 450px;
+    overflow: hidden;
+    background: url('https://cfx-nui-el_notebook/html/img/bg.jpg') center center no-repeat;
+    background-size: cover;    /* background: white; */
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Buttons */
+
+#saveChanges {
+    display: none;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+}
