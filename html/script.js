@@ -7,20 +7,25 @@ let playerSource;
 window.addEventListener('message', (event) => {
     if (event.data.type === 'open') {
         $("body").fadeIn()
-        notebookId = event.data.metadata[0].id
-        title = event.data.metadata[0].title || ""
-        content = event.data.metadata[0].content || ""
-        itemId = event.data.metadata[0].item_id
+        notebookId = event.data.notebookId
         playerSource = event.data.source
-        setContent(title, content)
         resizeTitle()
         // console.log(playerSource)
     } else if (event.data.type === 'close') {
         $("body").fadeOut()
-    } else if (event.data.type === '') {
-
+    } else if (event.data.type === 'pages') {
+        setPages(event.data.pages)
     }
 });
+
+function setPages(pages) {
+    let page_list = ""
+    pages.forEach(page => {
+        page_list += `<a onclick="setContent('${page.title}', '${page.content}');return false;">${page.title}</a>`
+    });
+
+    $("#notebook_pages").html(page_list)
+}
 
 function setContent(title, content) {
     $('#notebookTitle').val(title)

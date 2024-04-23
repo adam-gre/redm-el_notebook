@@ -1,27 +1,30 @@
 local VORPutils = {}
+local VORPcore = exports.vorp_core:GetCore()
 local notebook = false -- Leave as false for production
-local notebookData = nil
-local notebookContents = "Lorem ipsum dolor sit amet" -- Remove from production
 
 TriggerEvent("getUtils", function(utils)
     VORPutils = utils
 	print = VORPutils.Print:initialize(print)
 end)
 
--- RegisterCommand('notebook', function(source, args, raw)
--- 	OpenNotebook()
--- end, false)
+
 
 RegisterNetEvent("el_notebook:OpenNotebook")
-AddEventHandler("el_notebook:OpenNotebook", function(source, metadata, itemId)
-	print(dump(metadata))
-	OpenNotebook(source, metadata, itemId)
+AddEventHandler("el_notebook:OpenNotebook", function(source, notebookId)
+	OpenNotebook(source, notebookId)
 end)
 
-RegisterNetEvent("el_notebook:UpdateNotebook")
-AddEventHandler("el_notebook:UpdateNotebook", function(data)
-	-- print("NOTEBOOK: ", dump(data[1]))
-	notebookData = data
+
+RegisterNetEvent("el_notebook:ReceivePages")
+AddEventHandler("el_notebook:ReceivePages", function(data)
+	print(dump(data))
+	if data ~= nil then
+		SendNUIMessage({
+			type = 'pages',
+			source = source,
+			pages = data
+		})
+	end
 end)
 
 -- local function DrawTexture(textureStreamed,textureName,x, y, width, height,rotation,r, g, b, a, p11)
@@ -32,34 +35,24 @@ end)
 --     end
 -- end
 
-function OpenNotebook(source, metadata, itemId)
-	print("NOTEBOOK: ", dump(metadata))
-	if not notebook then
-		-- if not VORPutils.Render then TriggerEvent("getUtils", function(utils)
-		-- 		VORPutils = utils
-		-- 		print = VORPutils.Print:initialize(print)
-		-- 	end)
-		-- end
+function OpenNotebook(source, notebookId)
+	TriggerServerEvent("el_notebook:GetPages", source, notebookId)
 
-		-- TriggerServerEvent("el_notebook:GetNotebook", metadata, source)
+	SendNUIMessage({
+		type = 'open',
+		source = source, 
+		notebookId = notebookId
+	})
 
-		SendNUIMessage({
-			type = 'open',
-			metadata = metadata,
-			itemId = itemId, 
-			source = source
-		})
+	SetNuiFocus(true, true)
 
-		SetNuiFocus(true, true)
-
-		notebook = true
-	end
+	notebook = true
 end
 
 RegisterNUICallback('closeNotebook', function(data, cb)
 	SetNuiFocus(false, false)
 	notebook = false
-	print(notebook)
+	-- print(notebook)
     cb({error = false})
 end)
 

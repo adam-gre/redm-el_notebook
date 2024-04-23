@@ -1,5 +1,32 @@
 local VORPcore = exports.vorp_core:GetCore()
 
+AddEventHandler('onResourceStart', function(resourceName)
+	if (GetCurrentResourceName() ~= resourceName) then
+	  return
+	end
+	print('[Electrum] Checking for database initialisation...')
+		exports.oxmysql:execute(
+			[[CREATE TABLE IF NOT EXISTS `notebooks` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`item_id` int(11) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				FOREIGN KEY (`id`) REFERENCES `notebook_pages` (`notebook_id`)
+			  ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4;]]
+		)
+		
+		exports.oxmysql:execute(
+			[[CREATE TABLE IF NOT EXISTS `notebook_pages` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`title` varchar(50) NOT NULL,
+				`content` varchar(5000) NOT NULL,
+				`notebook_id` int(11) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				KEY `notebook` (`notebook_id`)
+			  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;]]
+		)
+end)
+
+
 RegisterCommand('notebook', function(source, args, raw)
 	exports.vorp_inventory:addItem(source, "el_notebook", 1, {})
 end, false)
@@ -25,8 +52,8 @@ end, false)
 RegisterNetEvent("el_notebook:AddPage")
 AddEventHandler("el_notebook:AddPage", function (source, notebookId)	
 	exports.oxmysql:execute(
-		'INSERT INTO notebook_pages (title, content, notebook_id) VALUES (?, ?, ?)',
-		{ "Blank Notebook", "Thank you for purchasing a notebook!", notebookId },
+		'INSERT INTO notebook_pages (notebook_id) VALUES (?, ?, ?)',
+		{ notebookId },
 		function(row)
 			exports.vorp_inventory:addItem(source, "el_notebook", 1, { notebookId = row.insertId })
 			print(row)
@@ -65,34 +92,51 @@ end)
 
 
 exports.vorp_inventory:registerUsableItem("el_notebook", function(data)
-	print(dump(data.item.metadata))
-	if not data.item.metadata.notebookId then
-		exports.oxmysql:execute(
-			'INSERT INTO notebooks (title, content, item_id) VALUES (?, ?, ?)',
-			{ "Blank Notebook", "Thank you for purchasing a notebook!", data.item.mainid },
-			function(row)
-				-- VorpInv.subItem(data.source, "el_notebook", 1, data.item.metadata)
-				exports.vorp_inventory:setItemMetadata(data.source, data.item.id, {notebookId = row.id}, 1, function ()
-					TriggerClientEvent("el_notebook:OpenNotebook", data.source, data.source, row, data.item.id)
-					exports.vorp_inventory:closeInventory(data.source)
-				end)
-				print("Notebook created:" ..dump(row))
-			end
-		)
-	else
-		exports.oxmysql:execute(
-			'SELECT * FROM notebooks WHERE id=? LIMIT 1',
-			{ data.item.metadata.notebookId },
-			function(row)				
-				print("notebook found: ".. dump(row))
-				
-				TriggerClientEvent("el_notebook:OpenNotebook", data.source, data.source, row, data.item.id)
+	exports.oxmysql:execute(
+		'SELECT * FROM notebooks WHERE item_id=? LIMIT 1',
+		{ data.item.mainid },
+		function(row)
+			-- print("search result: ".. dump(row))
+			
+			if row[1] then
+				print("search result: ".. data.item.mainid)
+				TriggerClientEvent("el_notebook:OpenNotebook", data.source, data.source, data.item.mainid)
 				exports.vorp_inventory:closeInventory(data.source)
+			else
+				exports.oxmysql:execute(
+					'INSERT INTO notebooks (title, content, item_id) VALUES (?, ?, ?)',
+					{ "Blank Notebook", "Thank you for purchasing a notebook!", data.item.mainid },
+					function(row)
+						TriggerClientEvent("el_notebook:OpenNotebook", data.source, data.item.mainid)
+						exports.vorp_inventory:closeInventory(data.source)
+						print("Notebook created:" ..dump(row))
+					end
+				)
 			end
-		)
-	end
+		end
+	)
 end)
 
+-- Client Callbacks
+RegisterNetEvent("el_notebook:GetPages")
+AddEventHandler("el_notebook:GetPages", function (source, notebookId)
+	print(source)
+	local result
+	exports.oxmysql:execute(
+		'SELECT * FROM notebook_pages WHERE notebook_id=?',
+		{ notebookId },
+		function(row)
+			print(dump(row))
+			result = row
+			TriggerClientEvent("el_notebook:ReceivePages", source, row)
+		end
+	)
+
+	return result
+end)
+
+
+-- Utils
 function dump(o)
 	if type(o) == 'table' then
 	   local s = '{ '

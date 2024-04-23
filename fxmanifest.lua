@@ -25,7 +25,7 @@ files {
     -- 'html/fonts/*.ttf',
     'html/fonts/*.otf',
     'html/img/bg.jpg',
-    'html/fitty.min.js',
+    'html/fitty.min.js'
 }
 
 dependency 'vorp_inventory'
